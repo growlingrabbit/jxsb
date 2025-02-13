@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>退休年龄计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        h4 {
+            text-align: end;
+            width: 1200px;
+        }
+        label {
+            display: flex;
+            margin: 10px 0 10px;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .input-container input {
+            padding: 10px 10px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #4c4141;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<h4>程序参照政策文件版本：20250107版</h4>
+    <h1>退休年龄计算器</h1>
+    <form id="retirementForm">
+
+        <div class="input-container" style="display: flex; align-items: center;">
+            <label style="white-space: nowrap;"  for="birthYear">出生年份：</label>
+            <input style="margin-right: 20px; margin-bottom: 0px;" type="number" id="birthYear" name="birthYear" placeholder="例如：1980" min="1965" max="2024">
+
+            <label style="white-space: nowrap;" for="birthMonth">出生月份：</label>
+            <input style="margin-bottom: 0px;" type="number" id="birthMonth" name="birthMonth" placeholder="例如：5" min="1" max="12">
+        </div>
+
+        <label style="margin-top: 20px;" for="retirementAge">退休人员类别（原定50岁退休/原定55岁退休/原定60岁退休）：</label>
+        <select id="retirementAge">
+            <option value="50">原定五十岁退休女职工</option>
+            <option value="55">原定五十五岁退休女职工</option>
+            <option value="60">原定60岁退休男职工</option>
+        </select>
+
+        <label for="contributionMonths">已缴费月数（默认当月已计算，不考虑视同缴费）：</label>
+        <input style="margin-right: 10px;width: 97%;" type="number" id="contributionMonths" placeholder="例如：120" min="0" max="180">
+
+        <button type="button" onclick="calculate()">计算</button>
+        <button type="button" onclick="clearForm()">清空</button>
+    </form>
+
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        function calculate() {
+            const birthYear = parseInt(document.getElementById("birthYear").value);
+            const birthMonth = parseInt(document.getElementById("birthMonth").value);
+            const retirementAge = parseInt(document.getElementById("retirementAge").value);
+            const contributionMonths = parseInt(document.getElementById("contributionMonths").value);
+
+            if (isNaN(birthYear) || isNaN(birthMonth) || isNaN(retirementAge) || isNaN(contributionMonths)) {
+                alert("请完整填写所有字段！");
+                return;
+            }
+
+            let genderCategory;
+            switch (retirementAge) {
+                case 60: genderCategory = "男职工"; break;
+                case 55: genderCategory = "原定五十五岁退休女职工"; break;
+                case 50: genderCategory = "原定五十岁退休女职工"; break;
+                default: 
+                    alert("不支持的退休年龄！");
+                    return;
+            }
+
+            const birthDate = new Date(birthYear, birthMonth - 1, 1);
+            const currentDate = new Date();
+
+            const calculateMonths = (date1, date2) => {
+                return (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth());
+            };
+
+            const formatDate = (date) => {
+                return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+            };
+
+            const currentAgeInMonths = calculateMonths(birthDate, currentDate);
+            const baseRetirementAgeInMonths = retirementAge * 12;
+            const requiredContributionMonths = 180;
+            //原退休年龄
+            const yuanRetirementDate = new Date(birthDate.getTime());
+                  yuanRetirementDate.setMonth(yuanRetirementDate.getMonth() + baseRetirementAgeInMonths);
+            const year2025 = new Date(2025, 0, 1);
+            const beginDateInMonths = calculateMonths(birthDate, year2025);
+            let delayMonths = 0;
+            //延迟退休年龄
+            if (genderCategory === "原定五十岁退休女职工") {
+                delayMonths = Math.max(0, Math.floor((baseRetirementAgeInMonths - beginDateInMonths + 2) / 2));
+            }else{
+                delayMonths = Math.max(0, Math.floor((baseRetirementAgeInMonths - beginDateInMonths + 4) / 4));
+            }
+            if(genderCategory === "原定五十岁退休女职工"){
+                if(delayMonths > 60) {
+                   delayMonths = 60;
+                }
+            }else{
+                if(delayMonths > 36) {
+                    delayMonths = 36;
+                }
+            }
+
+            const delayRetirementDate =  new Date(birthDate.getTime());
+            delayRetirementDate.setMonth(delayRetirementDate.getMonth() + baseRetirementAgeInMonths + delayMonths);
+
+
+            //计算缴费满15年日期
+            const missingContributionMonths = Math.max(requiredContributionMonths - contributionMonths, 0);
+            const qualifiedContribution15Date = new Date(currentDate);
+            qualifiedContribution15Date.setDate(1);
+            qualifiedContribution15Date.setMonth(qualifiedContribution15Date.getMonth() + missingContributionMonths);
+
+
+            //初步计算满足最低缴费年限的时间
+            let additionalMonths = 0;
+            let tempDate = new Date(qualifiedContribution15Date.getTime());
+            let lastYear = tempDate.getFullYear();
+            const year2040 = new Date(2040,0,1);
+            const year2030 = new Date(2030,0,1);
+            while(tempDate > year2030 ){
+                if(tempDate > year2040){
+                    additionalMonths = 60;
+                    break;
+                }
+
+                // 每多一年，规定缴费年限多6个月
+
+                additionalMonths = (tempDate.getFullYear()-2029) * 6;
+                tempDate = new Date(qualifiedContribution15Date.getTime());
+                tempDate.setMonth(tempDate.getMonth() + additionalMonths);
+                if(tempDate.getFullYear() == lastYear){
+                    break;
+                }
+                lastYear = tempDate.getFullYear();
+                if(additionalMonths > 60){
+                    additionalMonths = 60;
+                    break;
+                }
+            }
+            let qualifiedContributionDate = new Date(qualifiedContribution15Date.getTime());
+            qualifiedContributionDate.setMonth(qualifiedContributionDate.getMonth() + additionalMonths);
+            let qualifiedContributionMonths = contributionMonths + missingContributionMonths + additionalMonths;
+
+            //初步计算最早退休时间
+            const finalRetirementDate = new Date(delayRetirementDate.getTime());//延迟退休时间
+            let earliestRetirementDate = new Date(yuanRetirementDate.getTime());//原退休时间
+            if (genderCategory === "原定五十岁退休女职工" && delayMonths > 36) {
+                earliestRetirementDate.setMonth(earliestRetirementDate.getMonth() + delayMonths - 36);
+            }
+            let finalEarliestRetirementDate = new Date(earliestRetirementDate.getTime());//要输出的最早退休年龄
+            //满足年限要求的日期在法定退休日期前
+            if(qualifiedContributionDate < finalRetirementDate){
+                //满足缴费年限要求的日期在原退休日期前
+                if(qualifiedContributionDate < earliestRetirementDate ){
+                    //等于最早退休时间
+                }else{
+                    finalEarliestRetirementDate = new Date(qualifiedContributionDate.getTime());
+                }
+            }else{
+                //0107文件新改动，达到法定退休年龄时不满足当年最低缴费年限，选择延长缴费的，累计缴费年限满足其法定退休年龄当年最低缴费年限即可
+                //此处使用另一种计算方式
+                let delayRetiremnetContributionMonths = 180;
+                if(delayRetirementDate >= year2030){
+                    //法定退休年龄需要缴纳的最低缴费月数
+                   delayRetiremnetContributionMonths =  180 + ((delayRetirementDate.getFullYear() - 2029) > 10 ? 60 : (delayRetirementDate.getFullYear() - 2029) * 6);
+                }
+                //法定退休年龄扔需要的缴费月数
+                let needRetirementContributionMonths = delayRetiremnetContributionMonths - contributionMonths;
+                let okRetirementDate = new Date(currentDate);
+                okRetirementDate.setMonth(okRetirementDate.getMonth() + needRetirementContributionMonths);
+
+                qualifiedContributionDate = new Date(okRetirementDate.getTime());
+                finalEarliestRetirementDate = new Date(okRetirementDate.getTime());
+            }
+
+            // 计算最低缴费月数
+            let tempMonths = 180;
+            if(finalEarliestRetirementDate > delayRetirementDate){
+                if(finalEarliestRetirementDate >= year2030){
+                    tempMonths = 180 + ((delayRetirementDate.getFullYear() - 2029) > 10 ? 60 : (delayRetirementDate.getFullYear() - 2029) * 6);
+                }
+            }else{
+                if(finalEarliestRetirementDate >= year2030){
+                    tempMonths = 180 + ((finalEarliestRetirementDate.getFullYear() - 2029) > 10 ? 60 : (finalEarliestRetirementDate.getFullYear() - 2029) * 6);
+                }
+            }
+            if(tempMonths < 180){
+                tempMonths = 180;
+            }
+
+
+            //处理临界问题（在原退休年龄前缴满，且不到2030年，即2030年退休但只缴了180个月）
+            if(qualifiedContributionMonths <= tempMonths ){
+                const need = tempMonths - qualifiedContributionMonths;
+                qualifiedContributionDate.setMonth(qualifiedContributionDate.getMonth() + need);
+                //判断临界问题是否需要推迟退休日期
+                if(qualifiedContributionDate >  finalEarliestRetirementDate){
+                    finalEarliestRetirementDate = new Date(qualifiedContributionDate.getTime());
+                }
+            }
+
+            const result = `
+                <p><strong>退休时间：</strong></p>
+                <p><strong> 1. 原退休日期：</strong>${formatDate(yuanRetirementDate)}</p>
+                <p><strong> 2. 延迟月数：</strong>${delayMonths}个月</p>
+                <p><strong> 3. 法定退休日期：</strong>${formatDate(delayRetirementDate)}</p>
+                <p style="color:red;"><strong> 4. 满足弹性提前退休要求的日期：</strong>${formatDate(finalEarliestRetirementDate)}</p>
+                <p><strong>缴费年限：</strong></p>
+                <p><strong> 1. 缴费满15年的日期：</strong>${formatDate(qualifiedContribution15Date)} (当月缴满)</p>
+                <p><strong> 2. 满足弹性提前退休的最低缴费月数：</strong>${tempMonths}个月</p>
+                <p><strong> 3. 满足弹性提前退休最低缴费年限的日期：</strong>${formatDate(qualifiedContributionDate)}(当月缴满)</p>
+                <p><strong>注：</strong>以上结果仅供参考，具体以政策文件为准。</p>
+            `;
+
+            document.getElementById("result").innerHTML = result;
+            document.getElementById("result").style.display = "block";
+        }
+
+        function clearForm() {
+            document.getElementById("birthYear").value = "";
+            document.getElementById("birthMonth").value = "";
+            document.getElementById("retirementAge").value = "";
+            document.getElementById("contributionMonths").value = "";
+            document.getElementById("result").style.display = "none";
+        }
+    </script>
+</body>
+</html>
