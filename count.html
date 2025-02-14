@@ -256,15 +256,15 @@
 
             const result = `
                 <p  style="text-align: left"><strong>退休时间：</strong></p>
-                <p><strong> 1. 原退休日期：</strong>${formatDate(yuanRetirementDate)}</p>
-                <p><strong> 2. 延迟月数：</strong>${delayMonths}个月</p>
-                <p><strong> 3. 法定退休日期：</strong>${formatDate(delayRetirementDate)}</p>
-                <p style="color:red;"><strong> 4. 满足弹性提前退休要求的日期：</strong>${formatDate(finalEarliestRetirementDate)}</p>
-                <p><strong>缴费年限：</strong></p>
-                <p><strong> 1. 缴费满15年的日期：</strong>${formatDate(qualifiedContribution15Date)} (当月缴满)</p>
-                <p><strong> 2. 满足弹性提前退休的最低缴费月数：</strong>${tempMonths}个月</p>
-                <p><strong> 3. 满足弹性提前退休最低缴费年限的日期：</strong>${formatDate(qualifiedContributionDate)}(当月缴满)</p>
-                <p><strong>注：</strong>以上结果仅供参考，具体以政策文件为准。</p>
+                <p style="text-align: left"><strong> 1. 原退休日期：</strong>${formatDate(yuanRetirementDate)}</p>
+                <p style="text-align: left"><strong> 2. 延迟月数：</strong>${delayMonths}个月</p>
+                <p style="text-align: left"><strong> 3. 法定退休日期：</strong>${formatDate(delayRetirementDate)}</p>
+                <p style="text-align: left;color:red"><strong> 4. 满足弹性提前退休要求的日期：</strong>${formatDate(finalEarliestRetirementDate)}</p>
+                <p style="text-align: left"><strong>缴费年限：</strong></p>
+                <p style="text-align: left"><strong> 1. 缴费满15年的日期：</strong>${formatDate(qualifiedContribution15Date)} (当月缴满)</p>
+                <p style="text-align: left"><strong> 2. 满足弹性提前退休的最低缴费月数：</strong>${tempMonths}个月</p>
+                <p style="text-align: left"><strong> 3. 满足弹性提前退休最低缴费年限的日期：</strong>${formatDate(qualifiedContributionDate)}(当月缴满)</p>
+                <p style="text-align: left"><strong>注：</strong>以上结果仅供参考，具体以政策文件为准。</p>
             `;
 
             document.getElementById("result").innerHTML = result;
